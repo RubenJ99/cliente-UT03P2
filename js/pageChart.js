@@ -14,18 +14,18 @@ const bAddSaleModal = document.getElementById('bAddSaleModal');
 
 const monthlySalesMap = new Map();
 const newProduct = document.forms[0].inlineRadioOptions; //!!
-const chartColors = new Map();
-chartColors.set('Camaras','rgba(238,184,104,1');
-chartColors.set('Portatiles','rgba(75,166,223,1');
-chartColors.set('Telefonos','rgba(239,118,122,1');
-chartColors.set('Tablets','rgba(40,167,69,1');
+
+
+const monthlySoldCameras = [];
+const monthlySoldLaptops = [];
+const monthlySoldMobiles = [];
+const monthlySoldTablets = [];
 
 
 
-let monthSales = Array.of(6500, 3250, 4000); //cambiar para practica con los mapitas
-let monthLabels = Array.of("Octubre", "Noviembre", "Diciembre");
+const monthLabels = [];
 let deptSales = Array.of(12, 9, 7, 3);
-let deptLabels = Array.of("Cámara", "Móvil", "Portátil", "Tablet");
+let deptLabels = Array.of("Camera", "Mobile", "Laptop", "Tablet");
 let yearlyTotal = 0;
 
 //DEFINICION DE CHART
@@ -33,7 +33,7 @@ let monthlySalesChart = new Chart(monthCtx, {
 	type: "bar",
 	data: {
 		labels: [],
-		datasets: [{},],
+		datasets: [],
 	},
 	options: {
 		scales: {
@@ -129,6 +129,9 @@ const PARSED_MONTHS = {
 	'2021-11': 'November',
 	'2021-12': 'December',
 }
+function parseMonth(date) {
+	return PARSED_MONTHS[date];
+}
 const PRODS = {
 	option1: 'Camera',
 	option2: 'Mobile',
@@ -141,15 +144,88 @@ function parseProd(radio) {
 
 let data = {
 	label: '',
-	data: '',
+	data: [],
 	backgroundColor: '',
 	borderWidth: 0,
 }
+const dataCam = {...data};
+const dataMob = {...data};
+const dataLap = {...data};
+const dataTab = {...data};
 
+/**
+ *
+ * @param {Map} monthlySalesMap
+ */
+function cameraSales(monthlySalesMap) {
+	let cameras = []
+	for (const [key, val] of monthlySalesMap.entries()) {
+		if(val.has('Camera')){
+			cameras.push(val.get('Camera'))
+		}
+	}
+
+	if(!dataCam.label.localeCompare('Camera')) dataCam.label = 'Camera';
+	dataCam.data = cameras;
+	dataCam.backgroundColor = 'rgba(238,184,104,1)';
+	monthlySalesChart.data.datasets.push(dataCam);
+}
+/**
+ *
+ * @param {Map} monthlySalesMap
+ */
+ function mobileSales(monthlySalesMap) {
+	let mobiles = []
+	for (const [key, val] of monthlySalesMap.entries()) {
+		if(val.has('Mobile')){
+			mobiles.push(val.get('Mobile'))
+		}
+	}
+
+	if(!dataMob.label.localeCompare('Mobile')) dataMob.label = 'Mobile';
+	dataMob.data = mobiles;
+	dataMob.backgroundColor = 'rgba(239,118,122,1)';
+	monthlySalesChart.data.datasets.push(dataMob);
+}
+/**
+ *
+ * @param {Map} monthlySalesMap
+ */
+ function laptopSales(monthlySalesMap) {
+	let laptops = []
+	for (const [key, val] of monthlySalesMap.entries()) {
+		if(val.has('Laptop')){
+			laptops.push(val.get('Laptop'))
+		}
+	}
+
+	if(!(dataLap.label.localeCompare('Laptop'))) dataLap.label = 'Laptop';
+	dataLap.data = laptops;
+	dataLap.backgroundColor = 'rgba(75,166,223,1)';
+	monthlySalesChart.data.datasets.push(dataLap);
+}
+/**
+ *
+ * @param {Map} monthlySalesMap
+ */
+ function tabletSales(monthlySalesMap) {
+	let tablets = []
+	for (const [key, val] of monthlySalesMap.entries()) {
+		if(val.has('Tablet')){
+			tablets.push(val.get('Tablet'))
+		}
+	}
+
+	if(!dataTab.label.localeCompare('Tablet')) dataTab.label = 'Tablet';
+	dataTab.data = tablets;
+	dataTab.backgroundColor = 'rgba(40,167,69,1)';
+	monthlySalesChart.data.datasets.push(dataTab);
+}
 
 //Añadir ventas al gráfico //MODIFICAR PRACTICA CASI SEGURO
 function addSale(){
 	let product = parseProd(newProduct.value);
+	let parsedMonth = parseMonth(newMonth.value);
 	let itemsInMonth = new Map();
 		//SI EL MAPA PADRE CONTIENE EL MES SELECCIONADO
 		if (monthlySalesMap.has(newMonth.value)){
@@ -157,7 +233,6 @@ function addSale(){
 			if(itemsInMonth.has(product)){ //en caso de que tengamos un registro del item en ese mes
 				let num = itemsInMonth.get(product); //sacamos el valor del item y lo actualizamos
 				num += Number.parseInt(newAmount.value);
-				data.value
 				itemsInMonth.set(product, num);
 			}else{
 				itemsInMonth.set(product, Number.parseInt(newAmount.value)); //si no añadimos el nuevo valor
@@ -171,16 +246,37 @@ function addSale(){
 		 //Recuento de totales
 		 initMonthlyTotalSales();
 
-		//  let mnth = Array.from(monthlySalesMap.keys());
-		//  console.log(mnth)
-		//  monthlySalesChart.data.labels = monthLabels;
 
-		// data.label = "Tablets";
-		// data.data = 10;
-		// data.backgroundColor = "blue"
-		// monthlySalesChart.data.datasets[0] = (data);
+		 cameraSales(monthlySalesMap);
+		 mobileSales(monthlySalesMap);
+		 laptopSales(monthlySalesMap);
+		 tabletSales(monthlySalesMap);
+
+		if(monthLabels.indexOf(parsedMonth!==-1)){
+			monthLabels.push(parsedMonth);
+		}
+		monthlySalesChart.data.labels = monthLabels;
+
+
+
+
+		deptSalesChart.data.labels = deptLabels;
+		let i;
+		let dataForPie = [];
+		for (const [month, val] of monthlySalesMap.entries()) {
+			i = 0;
+			let innerMap = val.get(month);
+			for (const data of new Map(innerMap).values()) {
+				dataForPie[i++] += data;
+			}
+		}
+		deptSalesChart.data.datasets.data = dataForPie;
+
+
+
 
 		monthlySalesChart.update();
+		deptSalesChart.update();
 
 
 
