@@ -115,11 +115,24 @@ function resetMonthlySales(){
 	monthlySalesChart.render();
 	initMonthlyTotalSales();
  }
-
+const PARSED_MONTHS = {
+	'2021-01': 'January',
+	'2021-02': 'February',
+	'2021-03': 'March',
+	'2021-04': 'April',
+	'2021-05': 'May',
+	'2021-06': 'June',
+	'2021-07': 'July',
+	'2021-08': 'August',
+	'2021-09': 'September',
+	'2021-10': 'October',
+	'2021-11': 'November',
+	'2021-12': 'December',
+}
 const PRODS = {
-	option1: 'Camara',
-	option2: 'Movil',
-	option3: 'Portatil',
+	option1: 'Camera',
+	option2: 'Mobile',
+	option3: 'Laptop',
 	option4: 'Tablet',
 }
 function parseProd(radio) {
@@ -194,7 +207,7 @@ function drawSelectMontlySales(){
 	removeSales.empty();
 	for (let [month, itemMap] of monthlySalesMap.entries()){
 		for (let[item, value] of itemMap.entries()) {
-			let opt = $("<option>").val(month+"/"+item).text(month + "->" + item + ":" + value);
+			let opt = $("<option>").val(month+"/"+item).text(month + " -> " + item + " : " + value);
 			removeSales.append(opt);
 		}
 	}
@@ -203,8 +216,20 @@ function drawSelectMontlySales(){
  // Borrar meses de la colección
 function removeMonthlySale(){
 	let removeSales = document.getElementById("removeSales");
-	// Borramos de la colección la venta.
-	monthlySalesMap.delete(removeSales.value);
+	let dateAndItem = removeSales.value.split("/");
+
+
+	if(monthlySalesMap.has(dateAndItem[0])){
+		let selectedMap = monthlySalesMap.get(dateAndItem[0]);
+		if(selectedMap.has(dateAndItem[1])){
+			selectedMap.delete(dateAndItem[1]);
+		}else{
+			throw 'Selected item does not exist for this date'
+		}
+	}else{
+		throw 'Selected date does not exist'
+	}
+
 	// Actualizamos colección en el gráfico
 	monthlySalesChart.data.datasets[0].data = Array.from(monthlySalesMap.values());
 	monthlySalesChart.data.labels = Array.from(monthlySalesMap.keys());
