@@ -11,10 +11,14 @@ const bAddSaleModal = document.getElementById('bAddSaleModal');
 
 // const monthlyLabelsSet = new Set();
 // const monthlySalesArray = [];
+
 const monthlySalesMap = new Map();
-
 const newProduct = document.forms[0].inlineRadioOptions; //!!
-
+const chartColors = new Map();
+chartColors.set('Camaras','rgba(238,184,104,1');
+chartColors.set('Portatiles','rgba(75,166,223,1');
+chartColors.set('Telefonos','rgba(239,118,122,1');
+chartColors.set('Tablets','rgba(40,167,69,1');
 
 
 
@@ -29,31 +33,7 @@ let monthlySalesChart = new Chart(monthCtx, {
 	type: "bar",
 	data: {
 		labels: [],
-		datasets: [{
-			label: 'Camaras',
-			data: monthlySalesCamera,
-			backgroundColor: 'rgba(238,184,104,1)',
-			borderWidth: 0,
-			},
-			{
-				label: 'Portatiles',
-				data: monthlySalesLaptop,
-				backgroundColor: 'rgba(75,166,223,1)',
-				borderWidth: 0,
-			},
-			{
-				label: 'Telefonos',
-				data: monthlySalesPhone,
-				backgroundColor: 'rgba(239,118,122,1)',
-				borderWidth: 0,
-			},
-			{
-				label: 'Tablets',
-				data: monthlySalesTablet,
-				backgroundColor: 'rgba(40,167,69,1)',
-				borderWidth: 0,
-			},
-		],
+		datasets: [{},],
 	},
 	options: {
 		scales: {
@@ -95,11 +75,17 @@ function addYearlyTotal(a, b, c) {
 }
 
 function initMonthlyTotalSales(){
-	yearlyLabel.innerHTML = Array.from(monthlySalesMap.values()).reduce(
-		function (count, value){
-		return count + value;
-		}, 0) + "€";
-	 }
+	let items = Array.from(monthlySalesMap.values());
+	let aux;
+	let acc = 0;
+	items.forEach(item => {
+		aux = Array.from(item.values()).reduce((count, value) => {
+			return count + value;
+			}, 0);
+		acc += aux;
+	});
+	yearlyLabel.innerHTML = acc + "€";
+}
 
 initMonthlyTotalSales();
 
@@ -114,7 +100,7 @@ function findOver5000() {
 	});
 	alert("Cantidad: " + quantity + " Indice: " + position);
 }
-bSalesOver5000.addEventListener("click", findOver5000);
+
 
 function getSalesMonths(){
 	monthlySalesMap.forEach(function (amount, month){
@@ -130,34 +116,58 @@ function resetMonthlySales(){
 	initMonthlyTotalSales();
  }
 
+const PRODS = {
+	option1: 'Camara',
+	option2: 'Movil',
+	option3: 'Portatil',
+	option4: 'Tablet',
+}
+function parseProd(radio) {
+	return PRODS[radio];
+}
 
-bReset.addEventListener('click',resetMonthlySales);
+let data = {
+	label: '',
+	data: '',
+	backgroundColor: '',
+	borderWidth: 0,
+}
+
 
 //Añadir ventas al gráfico //MODIFICAR PRACTICA CASI SEGURO
 function addSale(){
+	let product = parseProd(newProduct.value);
 	let itemsInMonth = new Map();
 		//SI EL MAPA PADRE CONTIENE EL MES SELECCIONADO
 		if (monthlySalesMap.has(newMonth.value)){
 			itemsInMonth = monthlySalesMap.get(newMonth.value); //month contiene map del mes seleccionado
-			if(itemsInMonth.has(newProduct.value)){ //en caso de que tengamos un registro del item en ese mes
-				let num = itemsInMonth.get(newProduct.value); //sacamos el valor del item y lo actualizamos
+			if(itemsInMonth.has(product)){ //en caso de que tengamos un registro del item en ese mes
+				let num = itemsInMonth.get(product); //sacamos el valor del item y lo actualizamos
 				num += Number.parseInt(newAmount.value);
-				itemsInMonth.set(newProduct.value, num);
+				data.value
+				itemsInMonth.set(product, num);
 			}else{
-				itemsInMonth.set(newProduct.value, Number.parseInt(newAmount.value)); //si no añadimos el nuevo valor
+				itemsInMonth.set(product, Number.parseInt(newAmount.value)); //si no añadimos el nuevo valor
 			}
 			monthlySalesMap.set(newMonth.value, itemsInMonth); //Acabado cualquiera de los 2 casos el mapa padre
 																									//se actualiza retornando un mapa con valores correctos para el mes elegido
 		}else{ //EN CASO DE QUE EL MAPA PADRE NO CONTENGA REGISTRO DEL MES SELECCIONADO
-			itemsInMonth.set(newProduct.value, Number.parseInt(newAmount.value)); //Generamos un mapa con el item y su valor
+			itemsInMonth.set(product, Number.parseInt(newAmount.value)); //Generamos un mapa con el item y su valor
 			monthlySalesMap.set(newMonth.value, itemsInMonth);//En el mapa padre creamos una entrada key mes val mapa de items
 		}
 		 //Recuento de totales
 		 initMonthlyTotalSales();
-		 monthlySalesChart.data.datasets[0].data = Array.from(monthlySalesMap.
-			values());
-			 monthlySalesChart.data.labels = Array.from(monthlySalesMap.keys());
-			 monthlySalesChart.update();
+
+		//  let mnth = Array.from(monthlySalesMap.keys());
+		//  console.log(mnth)
+		//  monthlySalesChart.data.labels = monthLabels;
+
+		// data.label = "Tablets";
+		// data.data = 10;
+		// data.backgroundColor = "blue"
+		// monthlySalesChart.data.datasets[0] = (data);
+
+		monthlySalesChart.update();
 
 
 
@@ -168,15 +178,13 @@ function addSale(){
 			//  // Reseteo de formulario
 			//  cleanAddSaleForm();
 			//  }
-
+			cleanAddSaleForm();
 		 }
-
-bAddSaleModal.addEventListener('click',addSale);
 
 function cleanAddSaleForm(){
 	newMonth.value = "";
 	newAmount.value = "";
- }
+}
 
  // Crear select con
 function drawSelectMontlySales(){
@@ -184,11 +192,11 @@ function drawSelectMontlySales(){
 	let removeSales = $("#removeSales");
 	// Eliminamos option del select.
 	removeSales.empty();
-	for (let [month, amount] of monthlySalesMap.entries()){
-	// Creamos elemento option con jQuery
-	let opt = $("<option>").val(month).text(month + ": " + amount);
-	// Añadimos elemento al select.
-	removeSales.append(opt);
+	for (let [month, itemMap] of monthlySalesMap.entries()){
+		for (let[item, value] of itemMap.entries()) {
+			let opt = $("<option>").val(month+"/"+item).text(month + "->" + item + ":" + value);
+			removeSales.append(opt);
+		}
 	}
  }
 
