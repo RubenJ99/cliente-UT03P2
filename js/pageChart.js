@@ -20,12 +20,13 @@ const monthlySoldCameras = [];
 const monthlySoldLaptops = [];
 const monthlySoldMobiles = [];
 const monthlySoldTablets = [];
+const dataForPie = [0,0,0,0];
 
 
 
 const monthLabels = [];
 let deptSales = Array.of(12, 9, 7, 3);
-let deptLabels = Array.of("Camera", "Mobile", "Laptop", "Tablet");
+let deptLabels = ["Camera","Mobile","Laptop","Tablet"];
 let yearlyTotal = 0;
 
 //DEFINICION DE CHART
@@ -51,10 +52,9 @@ let monthlySalesChart = new Chart(monthCtx, {
 //DEF PIE CHART
 let deptSalesChart = new Chart(deptCtx, {
 	type: "pie",
-	data: {
-		labels: [],
-		datasets: [
-			{
+	data:{
+		labels: deptLabels,
+		datasets: [{
 				label: "Número de ventas",
 				data: [],
 				backgroundColor: [
@@ -64,8 +64,7 @@ let deptSalesChart = new Chart(deptCtx, {
 					"rgba(40, 167, 69, 1)",
 				],
 				borderWidth: 0,
-			},
-		],
+		}],
 	},
 	options: {},
 });
@@ -221,7 +220,12 @@ function cameraSales(monthlySalesMap) {
 	dataTab.backgroundColor = 'rgba(40,167,69,1)';
 	monthlySalesChart.data.datasets.push(dataTab);
 }
-
+const PROD_POS = {
+	Camera: 0,
+	Mobile: 1,
+	Laptop: 2,
+	Tablet: 3,
+}
 //Añadir ventas al gráfico //MODIFICAR PRACTICA CASI SEGURO
 function addSale(){
 	let product = parseProd(newProduct.value);
@@ -260,18 +264,17 @@ function addSale(){
 
 
 
-		deptSalesChart.data.labels = deptLabels;
-		let i;
-		let dataForPie = [];
-		for (const [month, val] of monthlySalesMap.entries()) {
-			i = 0;
-			let innerMap = val.get(month);
-			for (const data of new Map(innerMap).values()) {
-				dataForPie[i++] += data;
-			}
-		}
-		deptSalesChart.data.datasets.data = dataForPie;
 
+
+
+		let arrPos = PROD_POS[product];
+		let n = Number.parseInt(newAmount.value);
+		let acc = dataForPie[arrPos];
+		acc += n;
+		dataForPie.splice(arrPos,1,acc);
+
+
+	deptSalesChart.data.datasets[0].data = dataForPie;
 
 
 
@@ -313,11 +316,13 @@ function drawSelectMontlySales(){
 function removeMonthlySale(){
 	let removeSales = document.getElementById("removeSales");
 	let dateAndItem = removeSales.value.split("/");
-
-
+	let valToRemove;
+	let arrPos;
 	if(monthlySalesMap.has(dateAndItem[0])){
 		let selectedMap = monthlySalesMap.get(dateAndItem[0]);
 		if(selectedMap.has(dateAndItem[1])){
+			arrPos = PROD_POS[dateAndItem[1]];
+			valToRemove = selectedMap.get(dateAndItem[1]);
 			selectedMap.delete(dateAndItem[1]);
 		}else{
 			throw 'Selected item does not exist for this date'
@@ -326,10 +331,20 @@ function removeMonthlySale(){
 		throw 'Selected date does not exist'
 	}
 
+	let n = Number.parseInt(valToRemove);
+	let acc = dataForPie[arrPos];
+	acc -= n;
+	dataForPie.splice(arrPos,1,acc);
+
+
+
 	// Actualizamos colección en el gráfico
 	monthlySalesChart.data.datasets[0].data = Array.from(monthlySalesMap.values());
 	monthlySalesChart.data.labels = Array.from(monthlySalesMap.keys());
 	monthlySalesChart.update();
+
+	deptSalesChart.data.datasets[0].data = dataForPie;
+	deptSalesChart.update();
 	// Actualizasmos la vista
 	initMonthlyTotalSales();
 	drawSelectMontlySales();
