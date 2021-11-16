@@ -19,10 +19,6 @@ const BG_COLORS = {
 	'Tablet': 'rgba(40, 167, 69, 1)',
 }
 
-const monthlySoldCameras = [];
-const monthlySoldLaptops = [];
-const monthlySoldMobiles = [];
-const monthlySoldTablets = [];
 const dataForPie = [0,0,0,0];
 
 
@@ -115,6 +111,8 @@ function resetMonthlySales(){
 	monthlySalesMap.clear();
 	monthlySalesChart.reset();
 	monthlySalesChart.render();
+	deptSalesChart.reset();
+	deptSalesChart.render();
 	initMonthlyTotalSales();
  }
 const PARSED_MONTHS = {
@@ -153,14 +151,8 @@ const PROD_POS = {
 //Añadir ventas al gráfico //MODIFICAR PRACTICA CASI SEGURO
 function addSale(){
 	let product = parseProd(newProduct.value);
-	let parsedMonth = parseMonth(newMonth.value);
 	let itemsInMonth = new Map();
-	let data = {
-		label: '',
-		data: [],
-		backgroundColor: '',
-		borderWidth: 0,
-	}
+
 	let months = Array.from(monthlySalesMap.keys()).map(elem => parseMonth(elem));
 	console.log(months)
 		//SI EL MAPA PADRE CONTIENE EL MES SELECCIONADO
@@ -171,6 +163,7 @@ function addSale(){
 				let oldNum = num;
 				num += Number.parseInt(newAmount.value);
 				itemsInMonth.set(product, num);
+
 				monthlySalesChart.data.datasets.forEach(dataSet => {
 					if(dataSet.label === product){
 						let indx = dataSet.data.indexOf(oldNum);
@@ -184,7 +177,6 @@ function addSale(){
 					if(dataSet.label === product){
 						console.log(product);
 						let i = months.indexOf(parseMonth(newMonth.value));
-						console.log(i);
 						dataSet.data.splice(i,1,Number.parseInt(newAmount.value));
 					}
 				});
@@ -212,8 +204,7 @@ function addSale(){
 		dataForPie.splice(arrPos,1,acc);
 		deptSalesChart.data.datasets[0].data = dataForPie;
 
-		console.log(monthlySalesChart.data.datasets[0].data);
-		console.log(monthlySalesChart.data.datasets[2].data);
+
 		//Recuento de totales
 		initMonthlyTotalSales();
 		monthlySalesChart.update();
@@ -252,6 +243,18 @@ function removeMonthlySale(){
 			arrPos = PROD_POS[dateAndItem[1]];
 			valToRemove = selectedMap.get(dateAndItem[1]);
 			selectedMap.delete(dateAndItem[1]);
+
+			let indx = monthlySalesChart.data.labels.indexOf(parseMonth(dateAndItem[0]));
+			monthlySalesChart.data.datasets.forEach(dataSet => {
+				if(dataSet.label === dateAndItem[1]){
+					dataSet.data.splice(indx,1,0);
+				}
+			});
+
+			let n = Number.parseInt(valToRemove);
+			let acc = dataForPie[arrPos];
+			acc -= n;
+			dataForPie.splice(arrPos,1,acc);
 		}else{
 			throw 'Selected item does not exist for this date'
 		}
@@ -259,16 +262,12 @@ function removeMonthlySale(){
 		throw 'Selected date does not exist'
 	}
 
-	let n = Number.parseInt(valToRemove);
-	let acc = dataForPie[arrPos];
-	acc -= n;
-	dataForPie.splice(arrPos,1,acc);
+
 
 
 
 	// Actualizamos colección en el gráfico
-	monthlySalesChart.data.datasets[0].data = Array.from(monthlySalesMap.values());
-	monthlySalesChart.data.labels = Array.from(monthlySalesMap.keys());
+
 	monthlySalesChart.update();
 
 	deptSalesChart.data.datasets[0].data = dataForPie;
