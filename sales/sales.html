@@ -118,9 +118,6 @@
 					data-target="#exampleModal"><i class="fas fa-plus p-2"></i>Añadir venta</button>
 				<button type="button" class="btn" onClick="drawSelectMontlySales()" data-toggle="modal"
 					data-target="#deleteModal"><i class="fas fa-plus p-2"></i>Eliminar venta</button>
-				<button type="button" class="btn" onClick="getSalesMonths()">
-					<i class="fas fa-search-plus p-2"></i>Ventas > 1000
-				</button>
 				<button type="button" class="btn" onClick="resetMonthlySales()">
 					<i class="fas fa-redo p-2"></i>Resetear
 				</button>
@@ -179,13 +176,13 @@
 									<div class="form-check form-check-inline">
 										<input class="form-check-input" type="radio" name="inlineRadioOptions"
 											id="inlineRadio4" value="option4">
-										<label class="form-check-label" for="inlineRadio3">Tablet</label>
+										<label class="form-check-label" for="inlineRadio4">Tablet</label>
 									</div>
 								</div>
 							</form>
 						</div>
 						<div class="modal-footer">
-							<button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
+							<button type="button" class="btn btn-secondary" data-dismiss="modal" id="bCloseAdd">Cerrar</button>
 							<button type="button" class="btn" onClick="addSale()">Añadir venta</button>
 						</div>
 					</div>
